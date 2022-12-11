@@ -8,9 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import telran.java45.accounting.dao.UserAccountRepository;
 import telran.java45.accounting.dto.RolesResponseDto;
 import telran.java45.accounting.dto.UserAccountResponceDto;
@@ -27,11 +25,8 @@ public class UserAccountServiceImpl implements UserAccountService  , CommandLine
 	
 	final UserAccountRepository repository;
 	final ModelMapper modelMapper;
-	final PasswordEncoder passwordEncoder;
-	
-	@Value(value = "30")  
-	@Getter
-	@Setter
+	final PasswordEncoder passwordEncoder;	
+	@Value("${password.period:30}") 
 	private long period;
 	
 	@Override
@@ -42,6 +37,7 @@ public class UserAccountServiceImpl implements UserAccountService  , CommandLine
 		UserAccount userAccount = modelMapper.map(userRegisterDto, UserAccount.class);
 		String password = passwordEncoder.encode("admin");
 		userAccount.setPassword(password);
+		userAccount.setExpDate(LocalDateTime.now().plusDays(period));
 		repository.save(userAccount);
 		return modelMapper.map(userAccount, UserAccountResponceDto.class);
 	}
@@ -106,6 +102,7 @@ public class UserAccountServiceImpl implements UserAccountService  , CommandLine
 			UserAccount userAccount = new UserAccount("admin", password, "", "");
 			userAccount.addRole("MODERATOR");
 			userAccount.addRole("ADMINISTRATOR");
+			userAccount.setExpDate(LocalDateTime.now().plusDays(period));
 			repository.save(userAccount);
 		}
 		

@@ -1,7 +1,8 @@
 package telran.java45.security;
 
+import java.time.LocalDateTime;
+
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,15 +17,16 @@ import telran.java45.accounting.model.UserAccount;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
 	final UserAccountRepository repository;
-	
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		UserAccount userAccount = repository.findById(username).orElseThrow(()-> new UsernameNotFoundException(username));
-		
+		UserAccount userAccount = repository.findById(username).orElseThrow(() -> new UsernameNotFoundException(username));
 		String[] roles = userAccount.getRoles().stream()
-				.map(r -> "ROLE_" + r)
-				.toArray(String[]::new);
-		return new User(username, userAccount.getPassword(), AuthorityUtils.createAuthorityList(roles ));
+							.map(r -> "ROLE_" + r)
+							.toArray(String[]::new);
+		boolean passwordNonExpired = userAccount.getExpDate().isAfter(LocalDateTime.now());
+		return new UserProfile(username, userAccount.getPassword(), 
+				AuthorityUtils.createAuthorityList(roles), passwordNonExpired);
 	}
 
 }
